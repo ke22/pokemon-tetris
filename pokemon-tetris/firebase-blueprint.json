@@ -1,0 +1,34 @@
+{
+  "collections": [
+    {
+      "name": "scores",
+      "documents": [
+        {
+          "name": "scoreId",
+          "fields": [
+            {
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "name": "score",
+              "type": "number"
+            },
+            {
+              "name": "level",
+              "type": "number"
+            },
+            {
+              "name": "pokemon",
+              "type": "string"
+            },
+            {
+              "name": "date",
+              "type": "string"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
