@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidScore(data) {
+      return data.keys().hasAll(['name', 'score', 'level', 'pokemon', 'date'])
+        && data.keys().size() == 5
+        && data.name is string && data.name.size() <= 16 && data.name.size() > 0
+        && data.score is number && data.score >= 0
+        && data.level is number && data.level >= 1
+        && data.pokemon is string && data.pokemon.size() <= 32
+        && data.date is string && data.date.size() <= 32;
+    }
+
+    match /scores/{scoreId} {
+      // Allow reading scores to anyone
+      allow read: if true;
+      
+      // Allow creating scores
+      allow create: if isValidScore(request.resource.data);
+      
+      // Allow deleting scores so the clear button works
+      allow delete: if true;
+      
+      // Prevent updating scores
+      allow update: if false;
+    }
+  }
+}

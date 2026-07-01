@@ -12,7 +12,7 @@ interface PixelSpriteProps {
   sprite: PokemonSprite;
   pixelSize?: number; // width/height of a single pixel in px
   className?: string;
-  animate?: 'idle' | 'evolve' | 'bounce' | 'none';
+  animate?: 'idle' | 'evolve' | 'bounce' | 'none' | 'action-shake' | 'action-jump' | 'action-spin';
   dexId?: number;
 }
 
@@ -35,6 +35,12 @@ export default function PixelSprite({
     animationClass = 'animate-bounce';
   } else if (animate === 'bounce') {
     animationClass = 'animate-bounce duration-1000';
+  } else if (animate === 'action-shake') {
+    animationClass = 'animate-action-shake';
+  } else if (animate === 'action-jump') {
+    animationClass = 'animate-action-jump';
+  } else if (animate === 'action-spin') {
+    animationClass = 'animate-action-spin';
   }
 
   if (dexId !== undefined) {

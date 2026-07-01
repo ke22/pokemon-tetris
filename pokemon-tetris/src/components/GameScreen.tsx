@@ -60,6 +60,8 @@ export default function GameScreen({ partner, onGameOver, onQuit, theme, startLe
   const [abilityEnergy, setAbilityEnergy] = useState(0); // 0 to 100
   const [caughtLog, setCaughtLog] = useState<string[]>([]);
   const [specialStatus, setSpecialStatus] = useState<string>(''); // floating status text
+  const [boardFlash, setBoardFlash] = useState(false);
+  const [characterAnim, setCharacterAnim] = useState<'idle' | 'action-shake' | 'action-jump' | 'action-spin'>('idle');
 
   // Ref to keep track of current states in timing loop
   const stateRef = useRef({
@@ -237,6 +239,12 @@ export default function GameScreen({ partner, onGameOver, onQuit, theme, startLe
     // Compute metrics
     if (clearedCount > 0) {
       soundEffects.playClear(clearedCount);
+      
+      setBoardFlash(true);
+      setTimeout(() => setBoardFlash(false), 300);
+      
+      setCharacterAnim('action-jump');
+      setTimeout(() => setCharacterAnim('idle'), 400);
 
       // Score calc
       const basePoints = [0, 100, 300, 500, 800];
@@ -343,6 +351,16 @@ export default function GameScreen({ partner, onGameOver, onQuit, theme, startLe
     setAbilityEnergy(0);
     setSpecialStatus(`${currentForm.abilityName.toUpperCase()}!`);
     setTimeout(() => setSpecialStatus(''), 3000);
+    
+    let animType: 'action-shake' | 'action-jump' | 'action-spin' = 'action-shake';
+    if (partner.id === 'eevee' || partner.id === 'mew') animType = 'action-spin';
+    if (partner.id === 'pikachu' || partner.id === 'charmander') animType = 'action-jump';
+    
+    setCharacterAnim(animType);
+    setTimeout(() => setCharacterAnim('idle'), 600);
+    
+    setBoardFlash(true);
+    setTimeout(() => setBoardFlash(false), 300);
 
     const newGrid = grid.map(row => [...row]);
 
@@ -539,6 +557,18 @@ export default function GameScreen({ partner, onGameOver, onQuit, theme, startLe
     return () => clearInterval(id);
   }, [tickDown, isPaused, gameOver, level]);
 
+  // Passive energy regeneration over time
+  useEffect(() => {
+    if (isPaused || gameOver) return;
+    
+    // Add 1% energy every 500ms
+    const energyId = setInterval(() => {
+      setAbilityEnergy(prev => Math.min(100, prev + 1));
+    }, 500);
+    
+    return () => clearInterval(energyId);
+  }, [isPaused, gameOver]);
+
   // Helper to calculate Ghost Piece projection (where active piece would land)
   const getGhostY = (): number => {
     if (!currentPiece) return 0;
@@ -573,11 +603,11 @@ export default function GameScreen({ partner, onGameOver, onQuit, theme, startLe
   const valueClass = theme === 'gameboy' ? 'text-[#0f380f] font-retro text-sm' : 'text-zinc-100 font-retro text-sm';
 
   return (
-    <div id="game-arena" className={`min-h-screen p-3 md:p-6 flex flex-col items-center justify-center crt-screen transition-all ${containerClass}`}>
+    <div id="game-arena" className={`min-h-screen p-3 md:p-6 flex flex-col items-center justify-center crt-screen transition-all ${containerClass} ${boardFlash ? 'animate-board-flash' : ''}`}>
       {/* HUD Bar */}
       <div className="w-full max-w-4xl flex items-center justify-between mb-4 px-2">
         <div className="flex items-center gap-3">
-          <PixelSprite sprite={currentForm.sprite} pixelSize={4} dexId={currentForm.dexId} />
+          <PixelSprite sprite={currentForm.sprite} pixelSize={4} dexId={currentForm.dexId} animate={characterAnim} />
           <div>
             <div className={`font-retro text-[10px] uppercase ${partner.textColor}`}>
               {currentForm.name}
@@ -629,7 +659,7 @@ export default function GameScreen({ partner, onGameOver, onQuit, theme, startLe
           <div className={`p-3 rounded-lg ${panelClass}`}>
             <span className={labelClass}>Partner Pokemon</span>
             <div className="flex items-center justify-center py-4">
-              <PixelSprite sprite={currentForm.sprite} pixelSize={7} className="hover:scale-110 transition-transform" dexId={currentForm.dexId} />
+              <PixelSprite sprite={currentForm.sprite} pixelSize={7} className="hover:scale-110 transition-transform" dexId={currentForm.dexId} animate={characterAnim} />
             </div>
             <div className="font-retro text-[8px] leading-relaxed opacity-90 text-center">
               "{currentForm.description}"
