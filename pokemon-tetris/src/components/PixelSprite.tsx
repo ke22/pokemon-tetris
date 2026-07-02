@@ -46,8 +46,12 @@ export default function PixelSprite({
   if (dexId !== undefined) {
     return (
       <img
-        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${dexId}.png`}
+        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${dexId}.gif`}
         alt="pokemon sprite"
+        onError={(e) => {
+          // Fallback to static png if the animated gif doesn't exist
+          (e.target as HTMLImageElement).src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${dexId}.png`;
+        }}
         className={`inline-block select-none rendering-pixelated ${animationClass} ${className}`}
         style={{
           width: `${cols * pixelSize * 1.5}px`, // Slight scaling for better visibility

@@ -62,6 +62,7 @@ export default function GameScreen({ partner, onGameOver, onQuit, theme, startLe
   const [specialStatus, setSpecialStatus] = useState<string>(''); // floating status text
   const [boardFlash, setBoardFlash] = useState(false);
   const [characterAnim, setCharacterAnim] = useState<'idle' | 'action-shake' | 'action-jump' | 'action-spin'>('idle');
+  const [activeSkillOverlay, setActiveSkillOverlay] = useState<{type: string, dexId: number} | null>(null);
 
   // Ref to keep track of current states in timing loop
   const stateRef = useRef({
@@ -362,6 +363,9 @@ export default function GameScreen({ partner, onGameOver, onQuit, theme, startLe
     setBoardFlash(true);
     setTimeout(() => setBoardFlash(false), 300);
 
+    setActiveSkillOverlay({ type: partner.id, dexId: currentForm.dexId });
+    setTimeout(() => setActiveSkillOverlay(null), 2000); // Effect duration 2 seconds
+
     const newGrid = grid.map(row => [...row]);
 
     switch (partner.id) {
@@ -487,6 +491,11 @@ export default function GameScreen({ partner, onGameOver, onQuit, theme, startLe
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (gameOver) return;
+
+      const gameKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'w', 'a', 's', 'd', 'x', 'p', 'c', 'Escape', 'Shift', 'W', 'A', 'S', 'D', 'X', 'P', 'C'];
+      if (gameKeys.includes(e.key)) {
+        e.preventDefault();
+      }
 
       switch (e.key) {
         case 'ArrowLeft':
@@ -793,6 +802,39 @@ export default function GameScreen({ partner, onGameOver, onQuit, theme, startLe
                 <div className="font-sans text-xs text-zinc-400 text-center max-w-[220px]">
                   Press P or ESC to continue catching blocks!
                 </div>
+              </div>
+            )}
+
+            {/* SKILL EFFECT OVERLAY */}
+            {activeSkillOverlay && (
+              <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center overflow-hidden">
+                <div className="absolute inset-0 bg-black/40 animate-pulse"></div>
+                <img
+                  src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${activeSkillOverlay.dexId}.gif`}
+                  alt="Skill Effect"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${activeSkillOverlay.dexId}.png`;
+                  }}
+                  className="w-40 h-40 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.8)] animate-bounce relative z-30 scale-150"
+                  style={{ imageRendering: 'pixelated' }}
+                />
+                
+                {/* Type-based Particle Effects */}
+                {activeSkillOverlay.type === 'pikachu' && (
+                  <div className="absolute inset-0 z-40 bg-yellow-400/20 mix-blend-overlay"></div>
+                )}
+                {activeSkillOverlay.type === 'charmander' && (
+                  <div className="absolute inset-0 z-40 bg-red-500/20 mix-blend-overlay"></div>
+                )}
+                {activeSkillOverlay.type === 'squirtle' && (
+                  <div className="absolute inset-0 z-40 bg-blue-500/20 mix-blend-overlay"></div>
+                )}
+                {activeSkillOverlay.type === 'bulbasaur' && (
+                  <div className="absolute inset-0 z-40 bg-green-500/20 mix-blend-overlay"></div>
+                )}
+                {activeSkillOverlay.type === 'mew' && (
+                  <div className="absolute inset-0 z-40 bg-pink-500/20 mix-blend-overlay"></div>
+                )}
               </div>
             )}
 
